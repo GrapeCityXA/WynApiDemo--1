@@ -1,0 +1,433 @@
+.login-container{
+    width: 100%;
+    height: 100%;
+    background-color: #F0F3F6;
+    padding-top: 8%;
+}
+.login-area{
+    width: 600px;
+    height: 340px;
+    background-color: #FFFFFF;
+    margin: 0 auto;
+    display: flex;
+    padding: 69px 10px 24px 10px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+}
+.login-logo{
+    width: 120px;
+    height: 120px;
+    background-color: #313D88;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 120px;
+    z-index: 2;
+    position: absolute;
+    top: -60px;
+}
+.login-logo img{
+    width: 70px;
+}
+.login-title{
+    font-size: 24px;
+    color: #3E4DAB;
+    font-weight: 600;
+}
+.login-user{
+    display: flex;
+    flex-direction: column;
+}
+.login-user-item{
+    width: 580px;
+    height: 60px;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+.login-user-item:hover{
+    background-color: #F5F6FB;
+}
+.login-user-item.active{
+    background-color: #EBEDF6;
+}
+.login-user-item i{
+    color: #969696;
+    font-size: 26px;
+    margin: 0 15px;
+}
+.login-user-item-text{
+    display: flex;
+    flex-direction: column;
+    color: #333333;
+    font-size: 14px;
+}
+.login-user-item-text .small-text{
+    color: #333333;
+}
+.login-button-div{
+    width: 200px;
+    height: 40px;
+    margin: 30px auto;
+}
+.login-button{
+    width: 200px;
+    height: 40px;
+    background-color: #3E4DAB;
+    color: #E2E2E2;
+    margin: 0 auto;
+}
+/* .login-area {
+    width: 400px;
+    padding: 60px;
+    margin: 10% auto 0;
+    border-radius: 15px;
+    color: white;
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.login-description {
+    margin: 30px auto;
+    padding-left: 30%;
+}
+
+.login-area .login-title {
+    text-align: center;
+    font-size: 1.5em;
+    margin-bottom: 10px
+}
+
+.login-area .login-input {
+    background: none;
+    display: inline-block;
+    margin: 10px 40px;
+    text-align: center;
+    border: 2px solid #87af7d;
+    padding: 14px 10px;
+    width: 200px;
+    color: white;
+    border-radius: 24px;
+    transition: 0.25s;
+}
+
+.login-area .login-button {
+    background-color: #87af7d;
+    color: white;
+    border-radius: 24px ;
+    border: 2px solid grey;
+    width: 100%;
+    font-size: 1.2em;
+    margin: 15px 0;
+    padding: 6px 0;
+    cursor: pointer;
+    overflow: hidden;
+    transition: 0.5s;
+} */
+
+.erp-index-content {
+    /* padding: 40px 40px 85px 40px; */
+    padding: 20px;
+}
+
+input[type=checkbox]{
+    cursor: pointer;
+    position: relative;
+    width: 15px;
+    height: 15px;
+    font-size: 14px;
+}
+
+input[type=checkbox]::after{
+    position: absolute;
+    top: 0;
+    width: 15px;
+    height: 15px;
+    display: inline-block;
+    visibility: visible;
+    padding-left: 0px;
+    text-align: center;
+    content: ' ';
+    border-radius: 3px
+}
+
+input[type=checkbox]:checked::after{
+    content: "✓";
+    font-size: 12px;
+    font-weight: bold;
+    color: #ffffff;
+    background-color: #82b638;
+}
+
+input[type=checkbox]:checked + span {
+    margin-left: 5px;
+    color: #82b638;
+}
+
+input[type=checkbox] + span {
+    margin-left: 5px;
+}
+
+.window {
+    width: 460px;
+    min-height: 180px;
+    border: 1px solid #878787;;
+    border-radius: 4px;
+    background: #fff;
+    position: absolute;
+    top: 30%;
+    left: 40%;
+    box-shadow: 0 5px 16px rgba(0,0,0,0.7);
+    z-index: 5;
+}
+
+.window .window-title {
+    padding: 0 20px;
+    background-color: #3E4DAB;
+    color: #FFFFFF;
+    height: 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.window .window-title i{
+  font-size: 20px;
+}
+
+.window .items-container {
+    margin: 30px;
+    max-height: 200px;
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+
+.window .items-container .role-select {
+    float: right;
+    width: 80px;
+    margin-right: 5px;
+}
+
+.window .window-btn {
+    border-top: 1px solid #F0F0F0;
+    margin: 0 20px;
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    height: 50px;
+}
+
+.window .window-btn .window-save {
+    width: 100px;
+    height: 30px;
+    margin-left: 20px;;
+}
+
+.window .window-btn .window-cancel {
+    width: 100px;
+    height: 30px;
+}
+
+.erp-demo-iframe {
+    /* padding-left: 240px; */
+    width: 100%;
+    height: 100%;
+}
+
+.modal-close {
+    position: absolute;
+    top: 7px;
+    right: 6px;
+    background-color: grey;
+    color: white;
+    width: 50px;
+    text-align: center;
+    padding: 5px;
+    height: 35px;
+}
+
+.modal-iframe {
+    width: 100%;
+    height: 100%;
+}
+
+.doc-li {
+    background-color: #333e48;
+    position: relative;
+}
+
+.doc-title {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 85%;
+    display: inline-block !important;
+}
+
+.doc-option {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.5);
+    position: absolute;
+    top: 45%;
+    right: 5px;
+    padding: 0 10px;
+    transform: translate(0,-50%);
+}
+
+.erp-sidebar-menu-item .show-options {
+    position: absolute;
+    width: 120px;
+    background: #313D88;
+    color: #FFFFFF;
+    z-index: 99;
+    top: -10px;
+    right: 10px;
+    border-radius: 2px;
+    font-weight: 400;
+}
+
+.erp-sidebar-menu-item .show-options .option {
+    padding: 5px 10px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+}
+
+.erp-sidebar-menu-item .show-options .option:hover {
+    background-color: #2C367A;
+}
+
+.dashboard-card {
+    width: 19%;
+    box-sizing: border-box;
+    float: left;
+    color: rgba(255, 255, 255, 0.781);
+    padding: 30px;
+    margin-right: 1.25%;
+    border-radius: 10px;
+    box-shadow: 7px 9px 7px 2px rgba(0,0,0,0.09);
+    user-select: none;
+}
+
+.dashboard-card:last-of-type{
+    margin-right: 0;
+    
+}
+
+.dashboard-card_new-orders{
+    background-color: #FE526C;
+    background: linear-gradient(142deg, #FE526C 0%, #FE526CAA 100%);
+    
+}
+.dashboard-card_out-of-stock-orders{
+    background-color: #C74DFA;
+    background: linear-gradient(142deg, #C74DFA 0%, #C74DFAAA 100%);
+
+}
+.dashboard-card_monthly-completed-orders{
+    background-color: #4095FF; 
+    background: linear-gradient(142deg, #4095FF 0%, #4095FFAA 100%);
+
+    
+}
+.dashboard-card_monthly-sales-amount{
+    background-color: #2CD2AE;
+    background: linear-gradient(142deg, #2CD2AE 0%, #2CD2AEAA 100%);
+
+}
+.dashboard-card_distributor{
+    background-color: #FEB250;
+    background: linear-gradient(142deg, #FEB250 0%, #FEB250AA 100%);
+
+}
+
+.dashboard-card__quantity{
+    font-size: 30px;
+    color: white;
+}
+
+.dashboard-cards::after{
+    content: "";
+    clear: both;
+    display: table;
+}
+
+.erp-index-content h1{
+    font-size: 23px;
+}
+
+.dashboard-widget{
+    height: 300px;
+    background-color: white;
+    border-radius: 10px;
+    box-sizing: border-box;
+    float: left;
+    width: 19%;
+    margin-right: 1.25%;
+    box-shadow: 7px 9px 7px 2px rgba(0,0,0,0.09);
+}
+
+.dashboard-widget:last-of-type{
+    margin-right: 0;
+}
+.dashboard-widget-col-1{
+    width: 19%;
+    margin-right: 1.25%;
+}
+
+.dashboard-widget-col-2{
+    width: 39.25%;
+    margin-right: 1.25%;
+}
+
+.dashboard-widget-col-3{
+    width: 59.5%;
+    margin-right: 1.25%;
+}
+
+.dashboard-widget-col-4{
+    width: 79.75%;
+    margin-right: 1.25%;
+}
+
+.dashboard-widget__title{
+    line-height: 40px;
+    padding-left: 10px;
+    border-bottom: 1px solid #0000001f;
+    font-weight: bold;
+}
+.dashboard-widget-row{
+    margin-top: 40px;
+    display: inline-block;
+    width: 100%;
+}
+
+.dashboard-widget-row::after{
+    content: "";
+    clear: both;
+    display: table;
+}
+
+.dashboard-widget__content{
+    height: calc(100% - 40px);
+    overflow-y: auto;
+}
+
+
+.clickable-element{
+    outline: 2px solid transparent;
+
+    transition: outline 1s;  
+}
+
+.clickable-elements-highlight { 
+    outline-color: purple;
+}
+
+.notransition {
+    -webkit-transition: none !important;
+    -moz-transition: none !important;
+    -o-transition: none !important;
+    transition: none !important;
+  }
