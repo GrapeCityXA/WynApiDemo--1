@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from '../api-service/api.js';
+
+        let token;
+        async function getDocuments() {
+            let res = await sendRequest(api.getAllDocuments, token);
+            let documents = res.data.documents;
+            let ul = document.getElementById("documents");
+            documents.forEach((doc) => {
+                let li = document.createElement("li");
+                li.innerHTML = `${doc.title}<br>`;
+                ul.appendChild(li);
+            })
+        }
+
+        window.onload = function () {
+            getToken().then((resToken)=> {
+                token = resToken;
+                getDocuments();
+            }).catch((error) => {
+                console.log(error);
+                window.alert('获取token失败！')
+            });
+        }
+    </script>
+</head>
+
+<body>
+  <ul id="documents"></ul>
+</body>
+
+</html>

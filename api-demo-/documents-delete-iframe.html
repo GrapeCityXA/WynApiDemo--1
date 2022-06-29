@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from '../api-service/api.js';
+
+        let token;
+        async function getSomeDocuments() {
+            let res = await sendRequest(api.getAllDocuments, token);
+            let documents = res.data.documents.filter((doc) => {
+                return doc.type === "rdl" || doc.type === "rdlx-template";
+            })
+            let container = document.getElementById("container");
+            if (container.children) {
+                container.innerHTML = "";
+            }
+            documents.forEach((doc) => {
+                let div = document.createElement("div");
+                div.classList.add("form-group");
+                div.innerHTML = `<input id="${doc.id}" type="checkbox">${doc.title}`;
+                container.appendChild(div);
+            })
+        }
+
+        async function deleteDocuments() {
+            let documentsIds = [];
+            document.querySelectorAll('input[type=checkbox]:checked').forEach((item) => {
+                return documentsIds.push(item.id);
+            });
+
+            for (let docId of documentsIds) {
+                api.deleteDocuments['graphqlStr'] = api.deleteDocuments.getGraphqlStr(docId);
+                let res = await sendRequest(api.deleteDocuments, token);
+                if (res.errors) {
+                    document.getElementById("error-result").innerHTML += JSON.stringify(res.errors);
+                } else {
+                    document.getElementById("success-result").innerHTML += JSON.stringify(res.data);
+                }
+            }
+
+        }
+
+        window.onload = function () {
+            getToken().then((resToken) => {
+                token = resToken;
+                getSomeDocuments();
+                document.getElementById("delete-button").addEventListener('click', deleteDocuments, false);
+            }).catch((error) => {
+                console.log(error);
+                window.alert('获取token失败！')
+            });
+        }
+
+    </script>
+</head>
+
+<body>
+<div class="form-group col-4">
+    <div class="form-group">
+        <button id="delete-button" class="btn btn-block btn-primary">删除所选文档</button>
+    </div>
+    <div id="error-result"></div>
+    <div id="success-result"></div>
+    <div class="form-group">
+        <label>选择文档:</label>
+        <div id="container"></div>
+    </div>
+</div>
+</body>
+
+</html>

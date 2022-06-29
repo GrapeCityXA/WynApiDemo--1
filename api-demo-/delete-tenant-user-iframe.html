@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script src="../api-service/api-script.js" charset="utf-8"></script>
+    <script type="text/javascript">
+        let userIds = [];
+        async function changeTenant(tenantId) {
+            let tenantUsersUrl = `admin/api/accountmanagement/api/v1/tenants/${tenantId}/users`;
+            let tenantUsers = await serviceApi(tenantUsersUrl);
+            let container = document.getElementById("container");
+            if (container.children) {
+                container.innerHTML = "";
+            }
+            document.getElementById("result").innerHTML = "";
+            tenantUsers.forEach((user) => {
+                userIds.push(user.id);
+                let div = document.createElement("div");
+                div.classList.add("form-group");
+                div.innerHTML = `<input id="${user.id}" type="checkbox">${user.username}<br>`;
+                container.appendChild(div);
+            })
+        }
+
+        async function getAllTenants() {
+            let tenantsUrl = 'admin/api/accountmanagement/api/v1/tenants';
+            let tenants = await serviceApi(tenantsUrl);
+            tenants.forEach((tenant) => {
+                let select = document.getElementById("tenants");
+                let opt = document.createElement("option");
+                opt.value = tenant.id;
+                opt.innerHTML = tenant.name;
+                opt.setAttribute("name", tenant.name);
+                select.appendChild(opt);
+            })
+        }
+
+        async function removeUserForTenant() {
+            document.querySelectorAll('input[type=checkbox]:checked').forEach((user) => {
+                userIds.pop(user.id);
+            });
+            let tenants = document.getElementById("tenants");
+            let tenantId = tenants.options[tenants.selectedIndex].value;
+            let url = `admin/api/accountmanagement/api/v1/tenants/${tenantId}/users`;
+            let user = await serviceApi(url, "PUT", { userIds: userIds });
+            document.getElementById("result").innerHTML = JSON.stringify(user);
+        }
+
+        window.onload = function() {
+            getAllTenants();
+        }
+    </script>
+</head>
+
+<body>
+<div class="col-4">
+    <div class="form-group">
+        <label>选择组织:</label>
+        <select id="tenants" onchange="changeTenant(this.value)" class="form-control">
+            <option value="-1"></option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>组织成员:</label>
+        <div id="container"></div>
+    </div>
+    <button onclick="removeUserForTenant()" class="btn btn-block btn-primary">移除组织成员</button>
+    <p id="result"></p>
+</div>
+</body>
+
+</html>

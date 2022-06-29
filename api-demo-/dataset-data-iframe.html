@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <style media="screen">
+        table tr td {
+            border: 1px solid #0094ff;
+            padding: 5px;
+        }
+    </style>
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from '../api-service/api.js';
+
+        let token;
+        async function getDashboardDataset(body) {
+            let query_parameters = body.query.parameters;
+            let user_context_parameters = query_parameters.map((p) => {
+                if (p.parameterType === "User Context") {
+                    return {
+                        name: p.name
+                    };
+                }
+            })
+            api.getDataOfDataset['body'] = api.getDataOfDataset.getBody(body, user_context_parameters);
+            let dataSource = await sendRequest(api.getDataOfDataset, token);
+            createTable(dataSource)
+        }
+
+        function createTable(dataSource) {
+            const {
+                columns,
+                rows
+            } = dataSource;
+            let container = document.getElementById("container");
+            while (container.firstChild) {
+                container.firstChild.remove();
+            }
+            let head = document.createElement("tr");
+            columns.forEach((col) => {
+                let td = document.createElement("td");
+                td.innerHTML = `${col.Name}`
+                head.appendChild(td);
+            })
+            container.appendChild(head);
+            rows.forEach((row) => {
+                let tr = document.createElement("tr");
+                row.forEach((data) => {
+                    let td = document.createElement("td");
+                    td.innerHTML = `${data}`
+                    tr.appendChild(td);
+                })
+                container.appendChild(tr);
+            })
+        }
+
+        async function changeDashboard() {
+            let documentsELement = document.getElementById("dashboards");
+            let documentId = documentsELement.options[documentsELement.selectedIndex].value;
+            api.getDatasetDetailByDocumentId['url'] = api.getDatasetDetailByDocumentId.getUrl(documentId);
+            let res = await sendRequest(api.getDatasetDetailByDocumentId, token);
+            await getDashboardDataset(res);
+        }
+
+        async function getDashboards() {
+            let res = await sendRequest(api.getAllDocuments, token);
+            let dashboards = res.data.documents.filter(item => item.ext === "cdst" || item.ext === "dst");
+            let select = document.getElementById("dashboards");
+            dashboards.forEach((data) => {
+                let opt = document.createElement('option');
+                opt.value = data.id;
+                opt.innerHTML = data.title;
+                select.appendChild(opt);
+            })
+        }
+
+        window.onload = function () {
+            getToken().then((resToken) => {
+                token = resToken;
+                getDashboards();
+                document.getElementById("dashboards").addEventListener('change', changeDashboard, false);
+            }).catch((error) => {
+                console.log(error);
+                window.alert('获取token失败！')
+            });
+        }
+    </script>
+</head>
+
+<body>
+<div class="col-4 iframe-header">
+    <div class="form-group">
+        <label>dashboard list:</label>
+        <select id="dashboards" class="form-control">
+            <option style="display: none"></option>
+        </select>
+    </div>
+
+</div>
+<div class="iframe-header">
+    <table id="container"></table>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from '../api-service/api.js';
+
+        let token;
+        async function getDocuments() {
+            token = await getToken();
+            let res = await sendRequest(api.getAllDocuments, token);
+            let rdls = res.data.documents.filter((item) => {
+                return item.type === "dbd"
+            });
+
+            rdls.forEach((rdl) => {
+                let select = document.getElementById("documents-select");
+                let opt = document.createElement('option');
+                opt.value = rdl.id;
+                opt.innerHTML = rdl.title;
+                select.appendChild(opt);
+            })
+        }
+
+        async function handleChange() {
+           if (!this.value){
+               return ;
+           }
+            let documentId = this.value;
+            let container = document.getElementById("container");
+            while (container.firstChild) {
+                container.firstChild.remove();
+            }
+            let src = `http://localhost:51980/dashboards/view/${documentId}?mode=server&display=singlepage&theme=default&token=${token}`;
+            container.innerHTML =
+                `<iframe id ="preview-iframe"
+                    src="${src}"
+                    style = 'height: 100%; width: 100%;'
+                    frameborder = "0"
+                    id = "iframe" >
+                </iframe>`;
+        }
+
+        window.onload = function () {
+            getDocuments();
+            document.getElementById("documents-select").addEventListener('change', handleChange, false);
+        }
+    </script>
+</head>
+
+<body>
+  <div class="form-group" style="height: 100%">
+    <div class="col-4 iframe-header">
+      <label>dashboard:</label>
+      <select id="documents-select" class="form-control">
+          <option style='display: none'></option>
+      </select>
+    </div>
+    <div id="container" style="height: 100%"></div>
+  </div>
+</body>
+
+</html>

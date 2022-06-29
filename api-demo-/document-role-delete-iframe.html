@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from '../api-service/api.js';
+
+        let token;
+        async function getDocuments() {
+            let res = await sendRequest(api.getAllDocuments, token);
+            for (let i = 0; i < res.data.documents.length; i++) {
+                let data = res.data.documents[i];
+                if (data.type !== 'theme') {
+                    let select = document.getElementById("documents");
+                    let opt = document.createElement('option');
+                    opt.value = data.id;
+                    opt.innerHTML = data.title;
+                    select.appendChild(opt);
+                }
+            }
+        }
+
+        async function deleteDocumentPermission() {
+            let docElement = document.getElementById("documents");
+            let documentId = docElement.options[docElement.selectedIndex].value;
+
+            api.getDocInfoByDocumentId['graphqlStr'] = api.getDocInfoByDocumentId.getGraphqlStr(documentId);
+            let res = await sendRequest(api.getDocInfoByDocumentId, token);
+            let permissions = res.data.document.security.permissions;
+            let roleStr = [];
+            permissions.forEach((permission) => {
+                roleStr += `{role:"${permission.sub.name}",ops:[All]},`;
+            })
+
+            api.removeDocumentPermissions['graphqlStr'] = api.removeDocumentPermissions.getGraphqlStr(documentId, roleStr);
+            let deleteRes = await sendRequest(api.removeDocumentPermissions, token);
+            if (!deleteRes.errors) {
+                document.getElementById("container").innerHTML = "";
+            }
+            document.getElementById("result").innerHTML = JSON.stringify(deleteRes);
+        }
+
+        async function changeDocument() {
+            if (!this.value) {
+                return;
+            }
+            let documentId = this.value;
+            api.getDocInfoByDocumentId['graphqlStr'] = api.getDocInfoByDocumentId.getGraphqlStr(documentId);
+            let res = await sendRequest(api.getDocInfoByDocumentId, token);
+            let container = document.getElementById("container");
+            while (container.firstChild) {
+                container.firstChild.remove();
+            }
+            document.getElementById("result").innerHTML = "";
+            let permissions = res.data.document.security.permissions;
+            permissions.forEach((permission) => {
+                let li = document.createElement("li");
+                let str = `${permission.sub.name} ---`;
+                permission.ops.forEach((op) => {
+                    str += `${op},`;
+                });
+                li.innerHTML = str;
+                container.appendChild(li);
+            })
+        }
+
+        window.onload = function () {
+            getToken().then((resToken) => {
+                token = resToken;
+                getDocuments();
+                document.getElementById("documents").addEventListener('change', changeDocument, false);
+                document.getElementById("delete").addEventListener('click', deleteDocumentPermission, false);
+            }).catch((error) => {
+                console.log(error);
+                window.alert('获取token失败！')
+            });
+        }
+    </script>
+</head>
+
+<body>
+<div class="col-4">
+    <div class="form-group">
+        <label>documents:</label>
+        <select id="documents" class="form-control">
+            <option style="display: none"></option>
+        </select>
+    </div>
+    <div id="container"></div>
+    <button id="delete" class="btn btn-block btn-primary">delete share permissions</button>
+    <div id="result"></div>
+</div>
+</body>
+
+</html>

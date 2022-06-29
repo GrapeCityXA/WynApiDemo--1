@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from '../api-service/api.js';
+
+        let token;
+        async function getAllTags() {
+            let res = await sendRequest(api.getALLTags, token);
+            let tags = res.data.tags.filter((tag) => {
+                let defaultTagReg = /^\$/;
+                return !(defaultTagReg.test(tag.name) || tag.name === 'Favorites');
+            });
+            let container = document.getElementById("labels-container");
+            if (container.children) {
+                container.innerHTML = "";
+            }
+            tags.forEach((tag) => {
+                let div = document.createElement("div");
+                div.classList.add("form-group");
+                div.innerHTML = `<input id="${tag.id}" type="checkbox" name="tags">${tag.name}`;
+                container.appendChild(div);
+            })
+        }
+
+        async function getSomeDocuments() {
+            let res = await sendRequest(api.getAllDocuments, token);
+            let documents = res.data.documents.filter((document) => {
+                return document.type === "rdl" || document.type === "rdlx-template";
+            })
+            let container = document.getElementById("documents-container");
+            if (container.children) {
+                container.innerHTML = "";
+            }
+            documents.forEach((doc) => {
+                let div = document.createElement("div");
+                div.classList.add("form-group");
+                div.innerHTML = `<input id="${doc.id}" type="checkbox" name="documents">${doc.title}`;
+                container.appendChild(div);
+            })
+        }
+
+        async function setDocumentsTags () {
+            let tagIds = [];
+            let documentsIds = [];
+            document.querySelectorAll('input[type=checkbox]:checked').forEach((item) => {
+                if (item.name === 'tags') {
+                    tagIds.push(`"${item.id}"`);
+                }
+                if (item.name === 'documents') {
+                    documentsIds.push(`"${item.id}"`);
+                }
+            });
+            let operationTypes = document.getElementById("operationTypes");
+            let operationType = operationTypes.options[operationTypes.selectedIndex].value;
+            if (operationType === 'RemoveExisting') {
+                tagIds = [];
+            }
+            api.changeCategories['graphqlStr'] = api.changeCategories.getGraphqlStr(documentsIds, operationType, tagIds)
+            let res = await sendRequest(api.changeCategories, token);
+            if (res.errors) {
+                document.getElementById("result").innerHTML = JSON.stringify(res.errors);
+            } else {
+                document.getElementById("result").innerHTML = '修改成功！';
+            }
+        }
+
+        let handleChange = () => {
+            document.getElementById("result").innerHTML = "";
+        }
+
+        window.onload = function () {
+            getToken().then((resToken) => {
+                token = resToken;
+                getAllTags();
+                getSomeDocuments();
+                document.getElementById("set-tag").addEventListener('click', setDocumentsTags, false);
+                document.getElementById("operationTypes").addEventListener('change', handleChange, false);
+            }).catch((error) => {
+                console.log(error);
+                window.alert('获取token失败！')
+            });
+        }
+
+    </script>
+</head>
+
+<body>
+    <div class="form-group col-4">
+        <div class="form-group">
+            <label>操作选项:</label>
+            <select id="operationTypes" class="form-control">
+                <option value="AddNew">增加新分类</option>
+                <option value="RemoveExisting">移除所属分类</option>
+                <option value="RemoveExistingAndAddNew">移除所属分类并增加新分类</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <button id="set-tag" class="btn btn-block btn-primary">设置文档分类</button>
+        </div>
+        <div id="result"> </div>
+        <div class="form-group">
+            <label>选择分类:</label>
+            <div id="labels-container"></div>
+        </div>
+        <div class="form-group">
+            <label>选择文档:</label>
+            <div id="documents-container"></div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from '../api-service/api.js';
+
+        let token;
+        async function getAllRoles() {
+            let res = await sendRequest(api.getAllRoles, token);
+            let roles = res.data.roles.filter((role) => {
+                return role.name !== "Administrator";
+            });
+            let container = document.getElementById("labels-container");
+            if (container.children) {
+                container.innerHTML = "";
+            }
+            roles.forEach((role) => {
+                let div = document.createElement("div");
+                div.classList.add("form-group");
+                div.innerHTML = `<input type="checkbox" name="roles" value="${role.name}">${role.name}
+                                 <select id="${role.name}">
+                                    <option value="Read">只读</option>
+                                    <option value="Read,update">读写</option>
+                                 </select>`;
+                container.appendChild(div);
+            })
+        }
+
+        async function getSomeDocuments() {
+            let res = await sendRequest(api.getAllDocuments, token);
+            let documents = res.data.documents.filter((document) => {
+                return document.type === "rdl" || document.type === "rdlx-template";
+            })
+            let container = document.getElementById("documents-container");
+            if (container.children) {
+                container.innerHTML = "";
+            }
+            documents.forEach((doc) => {
+                let div = document.createElement("div");
+                div.classList.add("form-group");
+                div.innerHTML = `<input id="${doc.id}" type="checkbox" name="documents">${doc.title}`;
+                container.appendChild(div);
+            })
+        }
+
+        async function setDocumentsRoles() {
+            let documentsIds = [];
+            let grants = [];
+            document.querySelectorAll('input[type=checkbox]:checked').forEach((item) => {
+                if (item.name === 'roles') {
+                    let permissions = document.getElementById(item.value);
+                    let permission = permissions.options[permissions.selectedIndex].value;
+                    grants.push(
+                        `{
+                            role:"${item.value}",
+                            ops: [${permission}]
+                         }`
+                    )
+                }
+                if (item.name === 'documents') {
+                    documentsIds.push(`"${item.id}"`);
+                }
+            });
+            let operationTypes = document.getElementById("operationTypes");
+            let operationType = operationTypes.options[operationTypes.selectedIndex].value;
+            if (operationType === 'RemoveExisting') {
+                grants = [];
+            }
+            api.changePermissions['graphqlStr'] = api.changePermissions.getGraphqlStr(documentsIds, operationType, grants);
+            let res = await sendRequest(api.changePermissions, token);
+            if (res.errors) {
+                document.getElementById("result").innerHTML = JSON.stringify(res.errors);
+            } else {
+                document.getElementById("result").innerHTML = '修改成功！';
+            }
+        }
+
+        let handleChange = () => {
+            document.getElementById("result").innerHTML = "";
+        }
+
+        window.onload = function () {
+            getToken().then((resToken) => {
+                token = resToken;
+                getAllRoles();
+                getSomeDocuments();
+                document.getElementById("set-role").addEventListener('click', setDocumentsRoles, false);
+                document.getElementById("operationTypes").addEventListener('change', handleChange, false);
+            }).catch((error) => {
+                console.log(error);
+                window.alert('获取token失败！')
+            });
+        }
+
+    </script>
+</head>
+
+<body>
+<div class="form-group col-4">
+    <div class="form-group">
+        <label>操作选项:</label>
+        <select id="operationTypes" class="form-control">
+            <option value="AddNew">增加新权限</option>
+            <option value="RemoveExisting">移除现有权限</option>
+            <option value="RemoveExistingAndAddNew">移除现有权限并增加新权限</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <button id="set-role" class="btn btn-block btn-primary">设置文档权限</button>
+    </div>
+    <div id="result"></div>
+    <div class="form-group">
+        <label>选择权限:</label>
+        <div id="labels-container"></div>
+    </div>
+    <div class="form-group">
+        <label>选择文档:</label>
+        <div id="documents-container"></div>
+    </div>
+</div>
+</body>
+
+</html>

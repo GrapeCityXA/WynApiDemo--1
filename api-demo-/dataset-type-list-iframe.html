@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from '../api-service/api.js';
+
+        let token;
+        async function createDocuments() {
+            let res = await sendRequest(api.getAllDocuments, token);
+            let documents = res.data.documents.filter((item) => {
+                return item.type === "dataset";
+            })
+            let container = document.getElementById("container");
+
+            let dst = documents.filter(item => item.ext === "dst");
+            let ul = document.createElement("ul");
+            ul.innerHTML = "<h3>报表数据集</h3>";
+            dst.forEach((doc) => {
+                let li = document.createElement("li");
+                li.innerHTML = `${doc.title}<br>`;
+                ul.appendChild(li);
+            })
+            container.appendChild(ul);
+
+            let cdst = documents.filter(item => item.ext === "cdst");
+            let ul2 = document.createElement("ul");
+            ul2.innerHTML = "<h3>仪表板数据集</h3>";
+            cdst.forEach((doc) => {
+                let li = document.createElement("li");
+                li.innerHTML = `${doc.title}<br>`;
+                ul2.appendChild(li);
+            })
+            container.appendChild(ul2);
+
+        }
+
+        window.onload = function () {
+            getToken().then((resToken) => {
+                token = resToken;
+                createDocuments();
+            }).catch((error) => {
+                console.log(error);
+                window.alert('获取token失败！')
+            });
+        }
+    </script>
+</head>
+
+<body>
+<div class="form-group">
+    <div id="container" class="iframe-header"></div>
+</div>
+</body>
+
+</html>

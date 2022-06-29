@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from '../api-service/api.js';
+
+        let token;
+        async function rename() {
+            let doc = document.getElementById("documents");
+            let documentId = doc.options[doc.selectedIndex].value;
+            let rename = document.getElementById("rename").value;
+            api.renameDocument['graphqlStr'] = api.renameDocument.getGraphqlStr(documentId, rename);
+            let res = await sendRequest(api.renameDocument, token);
+            document.getElementById("result").innerHTML = "result :" + JSON.stringify(res.data)
+        }
+
+        async function getDocuments() {
+            let res = await sendRequest(api.getAllDocuments, token);
+            for (let i = 0; i < res.data.documents.length; i++) {
+                let data = res.data.documents[i];
+                if (data.type !== 'theme') {
+                    let select = document.getElementById("documents");
+                    let opt = document.createElement('option');
+                    opt.value = data.id;
+                    opt.innerHTML = data.title;
+                    select.appendChild(opt);
+                }
+            }
+        }
+
+        window.onload = function () {
+            getToken().then((resToken) => {
+                token = resToken;
+                getDocuments();
+                document.getElementById("rename-button").addEventListener('click', rename, false);
+            }).catch((error) => {
+                console.log(error);
+                window.alert('获取token失败！')
+            });
+        }
+    </script>
+</head>
+
+<body>
+  <div class="col-4">
+    <div class="form-group">
+      <label>document list:</label>
+      <select id="documents" class="form-control">
+        <option style="display: none"></option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>rename:</label>
+      <input id="rename" type="text" name="newName" class="form-control">
+    </div>
+    <button type="button" id="rename-button" class="btn btn-block btn-primary">
+      rename
+    </button>
+    <p id="result"> </p>
+  </div>
+
+</body>
+
+</html>

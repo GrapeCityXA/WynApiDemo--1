@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from '../api-service/api.js';
+
+        let token;
+        async function getDocuments() {
+            let res = await sendRequest(api.getAllDocuments, token);
+            for (let i = 0; i < res.data.documents.length; i++) {
+                let data = res.data.documents[i];
+                if (data.type !== 'theme') {
+                    let select = document.getElementById("documents");
+                    let opt = document.createElement('option');
+                    opt.value = data.id;
+                    opt.innerHTML = data.title;
+                    select.appendChild(opt);
+                }
+            }
+        }
+
+        async function getRoles() {
+            let roles = await sendRequest(api.getRolesAndPermissions, token);
+            let container = document.getElementById("roles");
+            while (container.firstChild) {
+                container.firstChild.remove();
+            }
+            roles.forEach((role) => {
+                let div = document.createElement("div");
+                div.setAttribute("style", "padding-left:50px");
+                let id = role.name.toLowerCase();
+                div.innerHTML = `<input  type="checkbox" id="${id}" value="${id}">${role.name}`;
+                container.appendChild(div);
+            })
+        }
+
+        async function updatePermissions() {
+            let docElement = document.getElementById("documents");
+            let documentId = docElement.options[docElement.selectedIndex].value;
+            let grants = [];
+            document.querySelectorAll('input[type=checkbox]:checked').forEach((item) => grants.push(
+                `{
+                    role:"${item.value}",
+                    ops: [Read, Update]
+                }`
+            ));
+            api.updateDocumentPermissions['graphqlStr'] = api.updateDocumentPermissions.getGraphqlStr(documentId, grants)
+            let res = await sendRequest(api.updateDocumentPermissions, token);
+            document.getElementById("result").innerHTML = JSON.stringify(res);
+        }
+
+        async function changeDocument() {
+            if (!this.value) {
+                return;
+            }
+            let documentId = this.value;
+            api.getDocInfoByDocumentId['graphqlStr'] = api.getDocInfoByDocumentId.getGraphqlStr(documentId);
+            let res = await sendRequest(api.getDocInfoByDocumentId, token);
+            document.querySelectorAll('input[type=checkbox]').forEach((item) => item.checked = false);
+            let permissions = res.data.document.security.permissions;
+            permissions.forEach((permission) => {
+                let name = permission.sub.name.toLowerCase();
+                if (name !== "") {
+                    document.getElementById(name).checked = true;
+                }
+            })
+        }
+
+        window.onload = function () {
+            getToken().then((resToken) => {
+                token = resToken;
+                getDocuments();
+                getRoles();
+                document.getElementById("documents").addEventListener('change', changeDocument, false);
+                document.getElementById("update").addEventListener('click', updatePermissions, false);
+            }).catch((error) => {
+                console.log(error);
+                window.alert('获取token失败！')
+            });
+        }
+    </script>
+</head>
+
+<body>
+<div class="col-4">
+    <div class="form-group">
+        <label>documents:</label>
+        <select id="documents" class="form-control">
+            <option style="display: none"></option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>roles:</label>
+        <div id="roles"></div>
+    </div>
+
+    <button type="button" id="update" class="btn btn-block btn-primary">更新文档权限</button>
+    <p id="result"></p>
+</div>
+
+</body>
+
+</html>

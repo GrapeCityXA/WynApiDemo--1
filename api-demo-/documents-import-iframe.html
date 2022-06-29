@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from '../api-service/api.js';
+
+        let token;
+        async function importFiles() {
+            let file = document.getElementById("selected-file").files[0];
+            if (file) {
+                api.importDocuments['body'] = api.importDocuments.getBody(file);
+                let response = await sendRequest(api.importDocuments, token);
+                document.getElementById("result").innerHTML = JSON.stringify(response.results);
+            }
+        }
+        window.onload = function () {
+            getToken().then((resToken) => {
+                token = resToken;
+                document.getElementById("import").addEventListener('click', importFiles, false);
+            }).catch((error) => {
+                console.log(error);
+                window.alert('获取token失败！')
+            });
+        }
+
+    </script>
+</head>
+
+<body>
+    <div class="col-4 iframe-header">
+        <div class="form-group">
+            <input type="file" id="selected-file">
+        </div>
+        <button id="import" class="btn btn-block btn-primary">导入</button>
+        <p id="result"></p>
+    </div>
+</body>
+
+</html>
