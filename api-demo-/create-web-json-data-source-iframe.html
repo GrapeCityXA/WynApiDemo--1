@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <style media="screen">
+        table tr td {
+            border: 1px solid #0094ff;
+            padding: 5px;
+        }
+    </style>
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from "../api-service/api.js";
+        let token;
+        let connectionString;
+        let url;
+        let schema1, name1, api1, query1, method1;
+        let schema2, name2, api2, query2, method2;
+        function validate1(){
+            url = url || document.getElementById("url").value.trim() || "https://jsonplaceholder.typicode.com/";
+            name1 = document.getElementById("endpoint1-name").value.trim() || "posts";
+            api1 = document.getElementById("endpoint1-api").value.trim() || "posts";
+            query1 = document.getElementById("endpoint1-query").value.trim() || "$.[*]";
+            method1 = document.getElementById("endpoint1-method").value.trim() || "GET";
+            const connectionString = `SIP=\"0\";SourceType=\"Web\";WebConfig=\"{\"\"Authorizations\"\":[],\"\"Headers\"\":[],\"\"BaseURI\"\":\"\"${url}\"\",\"\"DataType\"\":\"\"JSON\"\",\"\"Endpoints\"\":[{\"\"Name\"\":\"\"${name1}\"\",\"\"URI\"\":\"\"${api1}\"\",\"\"Authorization\"\":\"\"None\"\",\"\"DataLocator\"\":{\"\"Type\"\":\"\"JsonPath\"\",\"\"Value\"\":\"\"${query1}\"\"},\"\"Headers\"\":[],\"\"Payload\"\":\"\"\"\",\"\"RequestMethod\"\":\"\"${method1}\"\",\"\"ContentType\"\":\"\"application/json\"\"}],\"\"Parameters\"\":[]}\"`
+            if(token){
+                validate(1, connectionString);
+            }else{
+                getToken().then((resToken) => {
+                    token = resToken;
+                    validate(1, connectionString);
+                }).catch((error) => {
+                    console.log(error);
+                    window.alert("获取token失败！");
+                });
+            }
+        }
+        function validate2(){
+            url = url || document.getElementById("url").value.trim() || "https://jsonplaceholder.typicode.com/";
+            name2 = document.getElementById("endpoint2-name").value.trim() || "comments";
+            api2 = document.getElementById("endpoint2-api").value.trim() || "comments";
+            query2 = document.getElementById("endpoint2-query").value.trim() || "$.[*]";
+            method2 = document.getElementById("endpoint2-method").value.trim() || "GET";
+            const connectionString = `SIP=\"0\";SourceType=\"Web\";WebConfig=\"{\"\"Authorizations\"\":[],\"\"Headers\"\":[],\"\"BaseURI\"\":\"\"${url}\"\",\"\"DataType\"\":\"\"JSON\"\",\"\"Endpoints\"\":[{\"\"Name\"\":\"\"${name2}\"\",\"\"URI\"\":\"\"${api2}\"\",\"\"Authorization\"\":\"\"None\"\",\"\"DataLocator\"\":{\"\"Type\"\":\"\"JsonPath\"\",\"\"Value\"\":\"\"${query2}\"\"},\"\"Headers\"\":[],\"\"Payload\"\":\"\"\"\",\"\"RequestMethod\"\":\"\"${method2}\"\",\"\"ContentType\"\":\"\"application/json\"\"}],\"\"Parameters\"\":[]}\"`
+            if(token){
+                validate(2, connectionString);
+            }else{
+                getToken().then((resToken) => {
+                    token = resToken;
+                    validate(2, connectionString);
+                }).catch((error) => {
+                    console.log(error);
+                    window.alert("获取token失败！");
+                });
+            }
+        }
+        async function validate(index, connectionString){
+            api.getSchemaDefinition["body"] = api.getSchemaDefinition.getBody(connectionString, "Json");
+            let validateRes = await sendRequest(api.getSchemaDefinition, token);
+            if(validateRes.errorCode){
+                if(validateRes.Message){
+                    window.alert(validateRes.Message);
+                }else{
+                    window.alert("获取Web JSON数据源失败！");
+                }
+            }else{
+                let columnNameIndex = validateRes.columnNames.indexOf("ColumnName");
+                let dataTypeIndex = validateRes.columnNames.indexOf("DataType");
+                let tableNameIndex = validateRes.columnNames.indexOf("TableName");
+                let columns = [];
+                for(const row of validateRes.rows){
+                    columns.push(`{\\\"columnName\\\":\\\"${row[columnNameIndex]}\\\",\\\"dataType\\\":\\\"${row[dataTypeIndex]}\\\",\\\"tableName\\\":\\\"${row[tableNameIndex]}\\\"}`) ;
+                }
+                let name = document.getElementById(`endpoint${index}-name`).value.trim();
+                if(index == 1){
+                    schema1 = `{\\\"name\\\":\\\"${name}\\\",\\\"columns\\\":[${columns.join()}]}`;
+                }else{
+                    schema2 = `{\\\"name\\\":\\\"${name}\\\",\\\"columns\\\":[${columns.join()}]}`;
+                }
+                document.getElementById(`validate${index}`).setAttribute("disabled", "disabled"); 
+                if(schema1 && schema2){
+                    document.getElementById("create").removeAttribute("disabled");
+                }
+            }
+        }
+        async function createWebJSONDataSource(){
+            let res = await dataSourceNameExist();
+            if(res.errors){
+                console.log(res.errors);
+                window.alert("名称重复校验失败！");
+                return;
+            }
+            res = await testConnection();
+            if (res.data.testConnection !== ""){
+                console.log(res.data.testConnection);
+                window.alert("数据源连接失败！");
+                return;
+            }
+            res = await addDataSource();
+            if (res.errors){
+                console.log(res.errors);
+                window.alert("数据源创建失败！");
+            }else{
+                const{data: {addDatasource: {id, name}}} = res;
+                document.getElementById("result").innerHTML = `新建成功，新增数据源id为${id}，名称为${name}`;
+            }
+        }
+        async function dataSourceNameExist(){
+            let name = document.getElementById("name").value.trim() || "WebJsonDataSourceTest";
+            api.dataSourceNameExist["graphqlStr"] = api.dataSourceNameExist.getGraphqlStr(name);
+            return await sendRequest(api.dataSourceNameExist, token);
+        }
+        async function testConnection(){
+            connectionString = `SIP=\\\"0\\\";SourceType=\\\"Web\\\";WebConfig=\\\"{\\\"\\\"Authorizations\\\"\\\":[],\\\"\\\"Headers\\\"\\\":[],\\\"\\\"BaseURI\\\"\\\":\\\"\\\"${url}\\\"\\\",\\\"\\\"DataType\\\"\\\":\\\"\\\"JSON\\\"\\\",\\\"\\\"Endpoints\\\"\\\":[{\\\"\\\"Name\\\"\\\":\\\"\\\"${name1}\\\"\\\",\\\"\\\"URI\\\"\\\":\\\"\\\"${api1}\\\"\\\",\\\"\\\"Authorization\\\"\\\":\\\"\\\"None\\\"\\\",\\\"\\\"DataLocator\\\"\\\":{\\\"\\\"Type\\\"\\\":\\\"\\\"JsonPath\\\"\\\",\\\"\\\"Value\\\"\\\":\\\"\\\"${query1}\\\"\\\"},\\\"\\\"Headers\\\"\\\":[],\\\"\\\"Payload\\\"\\\":\\\"\\\"\\\"\\\",\\\"\\\"RequestMethod\\\"\\\":\\\"\\\"${method1}\\\"\\\",\\\"\\\"ContentType\\\"\\\":\\\"\\\"application/json\\\"\\\"},{\\\"\\\"Name\\\"\\\":\\\"\\\"${name2}\\\"\\\",\\\"\\\"URI\\\"\\\":\\\"\\\"${api2}\\\"\\\",\\\"\\\"Authorization\\\"\\\":\\\"\\\"None\\\"\\\",\\\"\\\"DataLocator\\\"\\\":{\\\"\\\"Type\\\"\\\":\\\"\\\"JsonPath\\\"\\\",\\\"\\\"Value\\\"\\\":\\\"\\\"${query2}\\\"\\\"},\\\"\\\"Headers\\\"\\\":[],\\\"\\\"Payload\\\"\\\":\\\"\\\"\\\"\\\",\\\"\\\"RequestMethod\\\"\\\":\\\"\\\"${method2}\\\"\\\",\\\"\\\"ContentType\\\"\\\":\\\"\\\"application/json\\\"\\\"}],\\\"\\\"Parameters\\\"\\\":[]}\\\";SchemaDefinition={\\\"tables\\\":[${schema1},${schema2}]}`;
+            api.testConnection["graphqlStr"] = api.testConnection.getGraphqlStr("Json", connectionString);
+            return await sendRequest(api.testConnection, token);
+        }
+        async function addDataSource(){
+            let name = document.getElementById("name").value.trim() || "WebJsonDataSourceTest";
+            api.addDataSource['graphqlStr'] = api.addDataSource.getGraphqlStr(name, 'Json', connectionString, true);
+            return await sendRequest(api.addDataSource, token);
+        }
+        function updateInfo1(){
+            [schema1, name1, api1, query1, method1] = [undefined, undefined, undefined, undefined, undefined];
+            document.getElementById("validate1").removeAttribute("disabled");
+            document.getElementById(`create`).setAttribute("disabled", "disabled"); 
+        }
+        function updateInfo2(){
+            [schema2, name2, api2, query2, method2] = [undefined, undefined, undefined, undefined, undefined];
+            document.getElementById("validate2").removeAttribute("disabled");
+            document.getElementById(`create`).setAttribute("disabled", "disabled"); 
+        }
+        window.onload = function () {
+            document.getElementById("validate1").addEventListener('click', validate1, false);
+            document.getElementById("validate2").addEventListener('click', validate2, false);
+            document.getElementById("create").addEventListener('click', createWebJSONDataSource, false);
+            
+            document.getElementById("endpoint1-name").addEventListener('change', updateInfo1, false);
+            document.getElementById("endpoint1-api").addEventListener('change', updateInfo1, false);
+            document.getElementById("endpoint1-method").addEventListener('change', updateInfo1, false);
+            document.getElementById("endpoint1-query").addEventListener('change', updateInfo1, false);
+            
+            document.getElementById("endpoint2-name").addEventListener('change', updateInfo2, false);
+            document.getElementById("endpoint2-api").addEventListener('change', updateInfo2, false);
+            document.getElementById("endpoint2-method").addEventListener('change', updateInfo2, false);
+            document.getElementById("endpoint2-query").addEventListener('change', updateInfo2, false);
+        }
+    </script>
+</head>
+
+<body>
+    <div class="col-6 iframe-header">
+        <div class="create-data-source-div">
+            <div class="basic">
+                <span>Name</span><input id="name" placeholder="WebJsonDataSourceTest" />
+                <span>Base Address</span><input id="url" placeholder="https://jsonplaceholder.typicode.com/" />
+            </div>
+            <div class="endpoints">
+                <table>
+                    <tr>
+                        <td>Name</td>
+                        <td>API URL</td>
+                        <td>Request Method</td>
+                        <td>Pre-Query</td>
+                        <td>Validate</td>
+                    </tr>
+                    <tr>
+                        <td><input id="endpoint1-name" placeholder="posts" /></td>
+                        <td><input id="endpoint1-api" placeholder="posts" /></td>
+                        <td>
+                            <select id="endpoint1-method">
+                                <option value="GET" selected>GET</option>
+                                <option value="POST">POST</option>
+                            </select>
+                        </td>
+                        <td><input id="endpoint1-query" placeholder="$.[*]"/></td>
+                        <td><button class="btn btn-block btn-primary" id="validate1">Validate</button></td>
+                    </tr>
+                    <tr>
+                        <td><input id="endpoint2-name" placeholder="comments" /></td>
+                        <td><input id="endpoint2-api" placeholder="comments" /></td>
+                        <td>
+                            <select id="endpoint2-method">
+                                <option value="GET" selected>GET</option>
+                                <option value="POST">POST</option>
+                            </select>
+                        </td>
+                        <td><input id="endpoint2-query" placeholder="$.[*]"/></td>
+                        <td><button class="btn btn-block btn-primary" id="validate2">Validate</button></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="button-list">
+                <button class="btn btn-block btn-primary" id="create" disabled="true">创建WebAPI-JSON数据源</button>
+            </div>
+        </div>
+        <p id="result"></p>
+    </div>
+
+</body>
+</html>

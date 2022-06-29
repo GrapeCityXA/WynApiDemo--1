@@ -1,0 +1,68 @@
+﻿<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+
+  <link rel="stylesheet" href="../files/vendor.css">
+  <link rel="stylesheet" href="../files/app.css">
+  <link rel="stylesheet" href="../files/common.css">
+
+</head>
+
+<body class="loaded">
+<div class="main-wrapper">
+
+  <div class="app" id="app">
+
+      <article class="content dashboard-page">
+        <section class="section">
+          <div class="row sameheight-container">
+              <div class="col-12">
+                  如果想要在业务系统中集成某个仪表板的设计页面，可采用URL集成方式。要点是：修改仪表板查看页面的集成URL，将 /view/ 改为 /edit/
+              </div>
+          </div>
+          <pre>
+
+例如：查看页面的集成URL字串如下：
+
+http://localhost:51980/dashboards/<strong style="color:red;">view</strong>/5b809a606d502b0031deb3cd/?mode=server&display=singlepage&theme=default&token=2cb6c4d1717902b9a1b46f9c58cfae6de02d5a9982e458d190a474da36748630
+
+将 /view/ 改为 /edit/ 之后，URL成为：
+
+http://localhost:51980/dashboards/<strong style="color:red;">edit</strong>/5b809a606d502b0031deb3cd/?mode=server&display=singlepage&theme=default&token=2cb6c4d1717902b9a1b46f9c58cfae6de02d5a9982e458d190a474da36748630
+
+将这个URL字串设置为业务系统页面中某个iframe的src属性或者超链接的href属性，即可将设计页面集成到业务系统中。
+
+        </pre>
+        </section>
+        <section class="section">
+          <div class="row sameheight-container">
+            <div class="col-12">
+              <div class="card sameheight-item" data-exclude="xs" id="dashboard-history">
+                <div class="card-header card-header-sm bordered">
+                  <div class="header-block">
+                    <h3 class="title"></h3>
+                  </div>
+                  <ul class="nav nav-tabs pull-right" role="tablist">
+                    <li class="nav-item ">
+                      <a class="nav-link active" role="tab" data-toggle="tab">Preview</a>
+                    </li>
+<!--                    <li class="nav-item">-->
+<!--                       -->
+<!--                    </li>-->
+                  </ul>
+                </div>
+                <div id="preview" class="card demo" style="display:block;height: 100%; ">
+                  <iframe src="dashboard-edit-iframe.html" width="100%" height="100%" frameborder="0"></iframe>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </article>
+    </div>
+  </div>
+</body>
+<script src="../common.js" charset="utf-8"></script>
+
+</html>

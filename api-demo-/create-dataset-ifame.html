@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <style media="screen">
+        table tr td {
+            border: 1px solid #0094ff;
+            padding: 5px;
+        }
+    </style>
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from "../api-service/api.js";
+        let token; 
+        let dataSource;
+        async function getDataSources() {
+            let res = await sendRequest(api.getDataSources, token);
+            if(res.data && res.data.datasources){
+                let dataSources = res.data.datasources;
+                let select = document.getElementById("data-source");
+                dataSources.forEach((dataSource) => {
+                    let opt = document.createElement("option");
+                    opt.value = JSON.stringify({id: dataSource.id, name: dataSource.name});
+                    opt.innerHTML = dataSource.name;
+                    select.appendChild(opt);
+                })
+            }else{
+                window.alert("获取数据源失败！");
+            }
+        }
+
+        async function changeDataSource(){
+            document.getElementById("schema").innerHTML = "<option value=''></option>";
+            let jsonDataSource = document.getElementById("data-source").selectedOptions[0].value;
+            if(jsonDataSource == ""){
+                dataSource = undefined;
+                return;
+            }
+            dataSource = JSON.parse(jsonDataSource);
+            api.getDatasourceSchemas.graphqlStr = api.getDatasourceSchemas.getGraphqlStr(dataSource.id);
+            let res = await sendRequest(api.getDatasourceSchemas, token);
+            let tables = res.data.datasourceSchemas.models[0].tables;
+            let views = res.data.datasourceSchemas.models[0].views;
+
+            let select = document.getElementById("schema");
+            tables.forEach((schema) => {
+                let opt = document.createElement("option");
+                opt.value = JSON.stringify({...schema, type: "table"});
+                opt.innerHTML = schema.name;
+                select.appendChild(opt);
+            })
+            views.forEach((schema) => {
+                let opt = document.createElement("option");
+                opt.value = JSON.stringify({...schema, type: "view"});
+                opt.innerHTML = schema.name;
+                select.appendChild(opt);
+            })
+        }
+
+        async function addDataSet(){
+            let name = document.getElementById("name").value.trim();
+            let schema = JSON.parse(document.getElementById("schema").selectedOptions[0].value);
+            if(!dataSource || !schema){
+                window.alert("请选择DataSource和Schema！");
+                return;
+            }
+            let firstTable = {
+				id: Math.round(1000000 * Math.random()),
+				tableType: schema.type === 'customTable' ? 'CustomSqlTable' : 'NativeTable',
+				tableName: `${schema.name}(${dataSource.id})`,
+				dataSourceId: dataSource.id,
+				unionType: "none",
+				tables: [],
+				filters: []
+			};
+            api.getFields.params = api.getFields.getParams(dataSource.id, schema.tableSchema, schema.originName, schema.type);
+            let res = await sendRequest(api.getFields, token);
+            let fields = res.map((field) => ({
+                column: field.name,
+                table: `${schema.originName}(${dataSource.id})`,
+                alias: "",
+                dataType: field.dataType,
+                fieldType: "Normal",
+                description: "",
+                display: true,
+                format: getDefaultFormat(field.dataType),
+                msDescription: ""
+            }));
+            api.createDataset.body = api.createDataset.getBody(name, dataSource, firstTable, fields);
+            res = await sendRequest(api.createDataset, token);
+            if(res.errors && res.errors[0]){
+                document.getElementById("result").innerHTML = `新增失败，错误原因为：${JSON.stringify(res.errors[0].message)}`;
+            }else{
+                document.getElementById("result").innerHTML = `新增成功，新增的数据集为：${JSON.stringify(res)}`;
+            }
+        }
+
+        function getDefaultFormat(dataType) {
+            switch (dataType) {
+                case "Guid":
+                case "String":
+                case "Boolean":
+                case "Binary":
+                case "Unknown":
+                    return '';
+                case "Number":
+                    return 'f2';
+                case "DateTime":
+                case "Date":
+                    return 'd';
+                default:
+                    return '';
+            }
+        }
+        
+        window.onload = function () {
+            document.getElementById("data-source").addEventListener('change', changeDataSource, false);
+            document.getElementById("add-dataset").addEventListener('click', addDataSet, false);
+            getToken().then((resToken)=> {
+                token = resToken;
+                getDataSources();
+            }).catch((error) => {
+                console.log(error);
+                window.alert('获取token失败！')
+            });
+        }
+    </script>
+</head>
+
+<body>
+    <div class="col-6 iframe-header">
+        <div class="form-group">
+            <label>Name:</label>
+            <input id="name" type="text" value="" class="form-control">
+        </div>
+        <div class="form-group">
+            <label>DataSource:</label>
+            <select id="data-source" class="form-control">
+                <option value=""></option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Schema:</label>
+            <select id="schema" class="form-control">
+                <option value=""></option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <button id='add-dataset' class="btn btn-block btn-primary">add dataset</button>
+            <p id="result"></p>
+        </div>
+    </div>
+
+</body>
+</html>

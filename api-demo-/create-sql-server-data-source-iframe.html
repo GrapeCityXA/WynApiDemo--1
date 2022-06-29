@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html style="height:100%;width:100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>test wynApi</title>
+    <link rel="stylesheet" href="../files/vendor.css">
+    <link rel="stylesheet" href="../files/app.css">
+    <link rel="stylesheet" href="../files/common.css">
+    <style media="screen">
+        table tr td {
+            border: 1px solid #0094ff;
+            padding: 5px;
+        }
+    </style>
+    <script type="module">
+        import {sendRequest, getToken} from "../api-service/api-script.js";
+        import api from "../api-service/api.js";
+        let token; 
+        function createSQLServerDataSource(){
+            getToken().then((resToken) => {
+                token = resToken;
+                testConnection();
+            }).catch((error) => {
+                console.log(error);
+                window.alert("获取token失败！");
+            });
+        }
+        async function testConnection(){
+            let connectionString = document.getElementById("connectionString").value.trim();
+            api.testConnection["graphqlStr"] = api.testConnection.getGraphqlStr("SqlServer", connectionString);
+            let testRes = await sendRequest(api.testConnection, token);
+            if (testRes.data.testConnection !== ""){
+                console.log(testRes.data.testConnection);
+                window.alert("数据源连接失败！");
+            }else{
+                addDataSource();
+            }
+        }
+        async function addDataSource(){
+            let inputName = document.getElementById("name").value.trim();
+            let connectionString = document.getElementById("connectionString").value.trim();
+            api.addDataSource['graphqlStr'] = api.addDataSource.getGraphqlStr(inputName, 'SqlServer', connectionString, false);
+            let addRes = await sendRequest(api.addDataSource, token);
+            if (addRes.errors){
+                console.log(addRes.errors);
+                window.alert("数据源创建失败！");
+            }else{
+                const{data: {addDatasource: {id, name}}} = res;
+                document.getElementById("result").innerHTML = `新建成功，新增数据源id为${id}，名称为${name}`;
+            }
+        }
+        window.onload = function () {
+            document.getElementById("create").addEventListener('click', createSQLServerDataSource, false);
+        }
+    </script>
+</head>
+
+<body>
+    <div class="col-6 iframe-header">
+        <div class="create-data-source-div">
+            <div class="input">
+                <span>Name</span><input id='name' />
+                <span>ConnectionString</span><textarea id='connectionString'></textarea>
+            </div>
+            <div class="button-list">
+                <button class="btn btn-block btn-primary" id="create">创建SQL Server数据源</button>
+            </div>
+        </div>
+        <p id="result"></p>
+    </div>
+
+</body>
+</html>

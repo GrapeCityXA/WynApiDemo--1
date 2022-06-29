@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+  <link rel="stylesheet" href="../files/vendor.css">
+  <link rel="stylesheet" href="../files/app.css">
+  <link rel="stylesheet" href="../files/common.css">
+</head>
+
+<body class="loaded">
+<div class="main-wrapper">
+  <div class="app" id="app">
+      <article class="content dashboard-page">
+        <section class="section">
+          <div class="row sameheight-container">
+            <div class="col-12">
+              通过调用API,传递正确的名称和连接字符串参数，能够创建一个WebAPI-JSON数据源</br>
+              以下示例展示了一个拥有两个EndPoint的Json数据源的创建流程</br>
+              1. 校验每个EndPoint的数据源，并获取其schema</br>
+              2. 创建数据源</br>
+              注</br>
+              1. 在该实例中所有输入均为必填项</br>
+              2. placeholder为实例数据，若不填写会自动使用默认数据发送请求</br>
+            </div>
+          </div>
+        </section>
+        <section class="section">
+          <div class="row sameheight-container">
+            <div class="col-12">
+              <div class="card sameheight-item" data-exclude="xs" id="dashboard-history">
+                <div class="card-header card-header-sm bordered">
+                  <div class="header-block">
+                    <h3 class="title"></h3>
+                  </div>
+                  <ul class="nav nav-tabs pull-right" role="tablist">
+                    <li class="nav-item ">
+                      <a class="nav-link active" role="tab" data-toggle="tab">Preview</a>
+                    </li>
+                  </ul>
+                </div>
+                <div id="preview" class="card demo" style="display:block;height: 100%; ">
+                  <iframe src="create-web-json-data-source-iframe.html" width="100%" height="100%" frameborder="0"></iframe>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </article>
+    </div>
+  </div>
+</body>
+<script src="../common.js" charset="utf-8"></script>
+</html>
