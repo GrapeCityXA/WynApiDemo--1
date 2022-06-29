@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>Wyn Enterprise API集成示例</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="files/vendor.css">
+    <link rel="stylesheet"  href="files/app.css">
+    <link rel="stylesheet"  href="files/erp.css">
+    <script src="header-menu.js" charset="utf-8"></script>
+</head>
+
+<body class="loaded">
+<div class="main-wrapper">
+    <script type="module">
+        import { doLogin,selectDesigner, selectViewer, selectHuaDong } from "./erp-demo/erp-demo.js";
+        document.getElementById('designer-div').addEventListener('click', selectDesigner, false);
+        document.getElementById('viewer-div').addEventListener('click', selectViewer, false);
+        document.getElementById('huadong-div').addEventListener('click', selectHuaDong, false);
+        document.getElementById('login-button').addEventListener('click', doLogin, false);
+    </script>
+    <script>
+        insertHeaderMenu('ERP');
+    </script>
+    <div class="login-container">
+        <div class="login-area">
+            <div class="login-logo"><img src="./images/wyn-logo.svg"></div>
+            <div class="login-title">
+                Wyn Integration Login
+            </div>
+            <div class="login-user" id="login-user">
+                <div class="login-user-item active" id="designer-div">
+                    <i class="fa fa-user-circle"></i>
+                    <div class="login-user-item-text">
+                        <span>Designer</span>
+                        <span class="small-text">查看、新建、编辑、分享部分仪表板或报表的权限，对部分文档也有分享管理或分类管理等权限</span>
+                    </div>
+                </div>
+                <div class="login-user-item" id="viewer-div">
+                    <i class="fa fa-user-circle"></i>
+                    <div class="login-user-item-text">
+                        <span>Viewer</span>
+                        <span class="small-text">仅可查看仪表板或报表，无新建、编辑等权限（可查看全国销售看板）</span>
+                    </div>
+                </div>
+                <div class="login-user-item" id="huadong-div">
+                    <i class="fa fa-user-circle"></i>
+                    <div class="login-user-item-text">
+                        <span>huadong</span>
+                        <span class="small-text">仅查看华东地区销售看板，对文档只有查看权限</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="login-button-div">
+            <button class="login-button" id="login-button">登录</button>
+        </div>
+    </div>
+
+</div>
+</body>
+<script src="common.js" charset="utf-8"></script>
+
+</html>

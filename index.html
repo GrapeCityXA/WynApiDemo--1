@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>Wyn Enterprise API集成示例</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="files/vendor.css">
+    <link rel="stylesheet"  href="files/app.css">
+    <link rel="stylesheet"  href="files/erp.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" charset="utf-8"></script>
+    <script src="header-menu.js" charset="utf-8"></script>
+    <script src="erp-common.js" charset="utf-8"></script>
+    <script type="module">
+        import {getToken} from "./api-service/api-script.js";
+        import {getShowDocuments, goToERPIndex, doLogout, closeTagsWindow, closeModal, closeShareWindow, login, createDashboard, createReport} from "./erp-demo/erp-demo.js";
+
+        if (window.localStorage.getItem('hasDefaultToken')) {
+            let token = window.localStorage.getItem('token');
+            if(!token) {
+                window.location.href = './erp-login.html';
+            } else {
+                getShowDocuments(token);
+            }
+        } else {
+            getToken('viewer', 'viewer', 'http://wynwx.grapecity.com.cn').then((token) => {
+                window.localStorage.setItem('hasDefaultToken', 'true');
+                window.localStorage.setItem('token', token.toString());
+                getShowDocuments(token);
+            })
+        }
+        let user = JSON.parse(window.localStorage.getItem('userInfo'));
+        if(!user){
+            window.location.href = './erp-login.html';
+        }
+        let role = user.name;
+        let tmpRole = role;
+        if(role == "designer"){
+            document.getElementById('erp-sidebar-menu').style.height = '86%';
+        } else{
+            document.getElementById('erp-sidebar-menu').style.height = '92%';
+        }
+        function showUserDialog(){
+            document.getElementById('user-operation-dialog').style.display = 'flex';
+            document.getElementById('user-mask').style.display = 'block';
+        }
+        function showUserChange(e){
+            if(e){
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            document.getElementById('user-change-dialog').style.display = 'flex';
+            document.getElementById('user-mask').style.display = 'block';
+        }
+        function showUserChange2(){
+            document.getElementById('user-operation-dialog').style.display = '';
+            showUserChange();
+        }
+        function showCreateDialog(){
+            document.getElementById('create-document-dialog').style.display = 'block';
+            document.getElementById('user-mask').style.display = 'block';
+        }
+        function changeDashboardsState(){
+            let dashboards = document.getElementById('dashboards');
+            let arrow = document.getElementById('erp-dashboards').getElementsByClassName('arrow')[0];
+            if(dashboards.style.display){
+                arrow.classList.remove('fa-angle-down');
+                arrow.classList.add('fa-angle-right');
+                dashboards.style.display = "";
+            }else{
+                arrow.classList.remove('fa-angle-right');
+                arrow.classList.add('fa-angle-down');
+                dashboards.style.display = "block";
+            }
+        }
+        function changeReportsState(){
+            let reports = document.getElementById('reports');
+            let arrow = document.getElementById('erp-reports').getElementsByClassName('arrow')[0];
+            if(reports.style.display){
+                arrow.classList.remove('fa-angle-down');
+                arrow.classList.add('fa-angle-right');
+                reports.style.display = "";
+            }else{
+                arrow.classList.remove('fa-angle-right');
+                arrow.classList.add('fa-angle-down');
+                reports.style.display = "block";
+            }
+        }
+        function closeDialog(){
+            document.getElementById('user-mask').style.display = "none";
+            document.getElementById('user-operation-dialog').style.display = "none";
+            document.getElementById('user-change-dialog').style.display = "none";
+            document.getElementById('create-document-dialog').style.display = "none";
+            document.getElementById('tags-window').style.display = "none";
+            document.getElementById('share-window').style.display = "none";
+        }
+
+        function clearUser(){
+            let elements = document.getElementsByClassName('user-change-item-active');
+            for (let element of elements) {
+                element.classList.remove('user-change-item-active');
+                element.classList.add('user-change-item');
+            }    
+        }
+
+        function selectDesigner(){
+            clearUser();
+            tmpRole = "designer";
+            document.getElementById('user-change-designer').classList.remove("user-change-item");
+            document.getElementById('user-change-designer').classList.add("user-change-item-active");
+        }
+
+        function selectViewer(){
+            clearUser();
+            tmpRole = "viewer";
+            document.getElementById('user-change-viewer').classList.remove("user-change-item");
+            document.getElementById('user-change-viewer').classList.add("user-change-item-active");
+        }
+
+        function selectHuadong(){
+            clearUser();
+            tmpRole = "huadong";
+            document.getElementById('user-change-huadong').classList.remove("user-change-item");
+            document.getElementById('user-change-huadong').classList.add("user-change-item-active");
+        }
+
+        function changeUser(){
+            role = tmpRole;
+            login(role, role);
+        }
+
+        document.getElementById('erp-user').innerHTML = `<i class="fa fa-user-circle"></i><span>${role.slice(0,1).toUpperCase() + role.slice(1).toLowerCase()}</span><i class="fa fa-exchange" id="change-user"></i>  `;
+        document.getElementById('username').innerHTML = role.slice(0,1).toUpperCase() + role.slice(1).toLowerCase();
+        document.getElementById(`user-change-${role}`).classList.remove("user-change-item");
+        document.getElementById(`user-change-${role}`).classList.add("user-change-item-active");
+
+        
+        document.getElementById('erp-user').addEventListener('click', showUserDialog, false);
+        document.getElementById('change-user').addEventListener('click', showUserChange, false);
+        document.getElementById('change-user2').addEventListener('click', showUserChange2, false);
+        document.getElementById('erp-dashboards').addEventListener('click', changeDashboardsState, false);
+        document.getElementById('erp-reports').addEventListener('click', changeReportsState, false);
+        document.getElementById('erp-index').addEventListener('click',goToERPIndex, false);
+        document.getElementById('user-mask').addEventListener('click', closeDialog, false);
+        document.getElementById('log-out').addEventListener('click', doLogout, false);
+        document.getElementById('user-change-designer').addEventListener('click', selectDesigner, false);
+        document.getElementById('user-change-viewer').addEventListener('click', selectViewer, false);
+        document.getElementById('user-change-huadong').addEventListener('click', selectHuadong, false);
+        document.getElementById('user-change-submit').addEventListener('click', changeUser, false);
+        document.getElementById('user-change-cancel').addEventListener('click', closeDialog, false);
+        document.getElementById('user-change-dialog-close').addEventListener('click', closeDialog, false);
+        
+        document.getElementById('erp-create').addEventListener('click', showCreateDialog, false);
+        document.getElementById('create-dialog-close').addEventListener('click', closeDialog, false);
+        document.getElementById('create-dashboard').addEventListener('click', () => {closeDialog();createDashboard();}, false);
+        document.getElementById('create-report').addEventListener('click', () => {closeDialog();createReport();}, false);
+
+        document.getElementById('modal-close').addEventListener('click', closeModal, false);
+
+        document.getElementById('tags-cancel').addEventListener('click', closeDialog, false);
+        document.getElementById('share-cancel').addEventListener('click', closeDialog, false);
+        document.getElementById('share-dialog-close').addEventListener('click', closeDialog, false);
+        document.getElementById('tags-dialog-close').addEventListener('click', closeDialog, false);
+        
+    </script>
+    <link rel="stylesheet" href="files/vendor.css">
+    <link rel="stylesheet"  href="files/app.css">
+</head>
+
+<body class="loaded">
+    <div id="modal" class="main-wrapper" style="display: none">
+        <div class="modal-close" id="modal-close">
+            关闭
+        </div>
+        <iframe id="modal-iframe" class="modal-iframe" width="100%" height="100%" frameborder="0" src=""></iframe>
+    </div>
+    <div id="erp-demo" class="main-wrapper">
+        <script>
+            insertHeaderMenu('ERP');
+        </script>
+        <div class="erp-container">
+            <div class="erp-sidebar">
+                <div class="erp-sidebar-menu" id="erp-sidebar-menu">
+                    <div class="erp-sidebar-menu-item first-active " id="erp-index">
+                        <i class="fa fa-home"></i><span>首页</span>
+                    </div>
+                    <div class="erp-sidebar-menu-item first" id="erp-dashboards">
+                        <i class="fa fa-tachometer"></i><span>管理驾驶舱</span><i class="fa fa-angle-right arrow"></i>
+                    </div>
+                    <div class="erp-sidebar-menu2 non-show" id="dashboards">
+                    </div>
+                    <div class="erp-sidebar-menu-item first" id="erp-reports">
+                        <i class="fa fa-table"></i><span>报表</span><i class="fa fa-angle-right arrow"></i>
+                    </div>
+                    <div class="erp-sidebar-menu2 non-show" id="reports">
+                    </div>
+                </div>
+                <div class="erp-create-div" id="erp-create-div"><button class="erp-create new-button1" id="erp-create">新建</button></div>
+                <div class="erp-user-div" id="erp-user"></div>
+            </div>
+            <div class="erp-demo-content">
+                <iframe id="erp-demo-iframe" class="erp-demo-iframe" frameborder="0" src="erp-demo/erp-demo-index.html"></iframe>
+            </div>
+        </div>
+        <div class="user-operation-dialog" id="user-operation-dialog">
+            <div class="user-info">
+                <i class="fa fa-user-circle"></i>
+                <span id="username"></span>
+            </div>
+            <div class="user-operation-item" id="change-user2">
+                <i class="fa fa-exchange"></i>
+                <span>切换用户</span>
+            </div>
+            <div class="user-operation-item" id="log-out">
+                <i class="fa fa-sign-out"></i>
+                <span>登出</span>
+            </div>
+        </div>
+        <div class="common-dialog" id="user-change-dialog">
+            <div class="common-header">
+                <span>切换用户</span>
+                <i class="fa fa-close" id="user-change-dialog-close"></i>
+            </div>
+            <div class="user-change-container">
+                <div class="user-change-item" id="user-change-designer">
+                    <i class="fa fa-user-circle"></i>
+                    <div class="user-change-item-text">
+                        <span>Designer</span>
+                        <span class="small-text">该用户可以查看、新建、编辑、分享部分仪表板或报表，对部分文档也有分享管理或分类管理等权限</span>
+                    </div>
+                </div>
+                <div class="user-change-item" id="user-change-viewer">
+                    <i class="fa fa-user-circle"></i>
+                    <div class="user-change-item-text">
+                        <span>Viewer</span>
+                        <span class="small-text">该用户仅可查看仪表板或报表，无新建、编辑等权限（可查看全国销售看板）</span>
+                    </div>
+                </div>
+                <div class="user-change-item" id="user-change-huadong">
+                    <i class="fa fa-user-circle"></i>
+                    <div class="user-change-item-text">
+                        <span>huadong</span>
+                        <span class="small-text">该用户仅可查看华东地区销售看板，对文档只有查看权限</span>
+                    </div>
+                </div>
+            </div>
+            <div class="common-bottom user-button-list">
+                <button class="user-change-cancel new-button2" id="user-change-cancel">取消</button>
+                <button class="user-change-submit new-button1" id="user-change-submit">确认</button>
+            </div>
+        </div>
+        <div class="create-document-dialog" id="create-document-dialog">
+            <div class="create-document-header">
+                <span>新建</span>
+                <i class="fa fa-close" id="create-dialog-close"></i>
+            </div>
+            <div class="create-document-content">
+                <div class="create-document-item">
+                    <div class="create-document-item-logo" id="create-dashboard">
+                        <i class="fa  fa-pie-chart"></i>
+                    </div>
+                    <div class="create-document-item-text">新建仪表板</div>
+                </div>
+                <div class="create-document-item">
+                    <div class="create-document-item-logo" id="create-report">
+                        <i class="fa  fa-file-text-o"></i>
+                    </div>
+                    <div class="create-document-item-text">新建报表</div>
+                </div>
+            </div>
+        </div>
+        <div id="share-window" class="window" style="display: none">
+            <div class="window-title">分享管理<i class="fa fa-close" id="share-dialog-close"></i></div>
+            <div id="roles-container" class="items-container"></div>
+            <div class="window-btn">
+                <button id="share-save" class="window-save new-button1">保存</button>
+                <button id="share-cancel" class="window-cancel new-button2">取消</button>
+            </div>
+        </div>
+        <div id="tags-window" class="window" style="display: none">
+            <div class="window-title">分类管理<i class="fa fa-close" id="tags-dialog-close"></i></div>
+            <div id="tags-container" class="items-container"></div>
+            <div class="window-btn">
+                <button id="tags-save" class="window-save new-button1">保存</button>
+                <button id="tags-cancel" class="window-cancel new-button2">取消</button>
+            </div>
+        </div>
+    </div>
+    <div class="user-mask" id="user-mask"><div>
+</body>
+<script src="./common.js" charset="utf-8"></script>
+
+</html>

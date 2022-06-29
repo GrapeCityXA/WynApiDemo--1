@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>wyn integration</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="./files/vendor.css">
+    <link rel="stylesheet"  href="./files/app.css">
+    <link rel="stylesheet"  href="./files/common.css">
+    <script src="api-demo/api-demo.js"></script>
+    <script src="./header-menu.js"></script>
+    <script type="module">
+        import {getToken} from "./api-service/api-script.js";
+
+        async function login() {
+            let token = await getToken();
+            let container = document.getElementById("container");
+            while (container.firstChild) {
+                container.firstChild.remove();
+            }
+            let src = `http://localhost:51980/integration/?token=${token}`
+            container.innerHTML =
+                `<iframe id ="preview-iframe"
+                         src="${src}"
+                         style = 'height: 100%; width: 100%;'
+                         frameborder = "0"
+                         id = "iframe" >
+                </iframe>`;
+        }
+
+        window.onload = function () {
+            login();
+        }
+    </script>
+    <style>
+        .auth-content {
+            height: 100%;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+
+<body class="loaded">
+<div class="main-wrapper">
+    <script>
+        insertHeaderMenu('Portal');
+        document.getElementById('portal').classList.add('selected-header');
+    </script>
+    <div class="auth-content" id="container">
+    </div>
+</div>
+</body>
+<script src="./common.js" charset="utf-8"></script>
+
+</html>
